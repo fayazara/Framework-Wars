@@ -17,6 +17,32 @@
       <h1 class="text-4xl text-white mb-4">Game Over</h1>
       <p class="text-2xl text-white mb-4">Final Score: {{ score }}</p>
       <UButton @click="restartGame" label="Restart Game" color="white" />
+      <div
+        class="fixed bottom-0 p-4 w-full bg-white flex items-center justify-between gap-4 text-gray-700"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <img
+            src="https://supersaas.dev/logo.png"
+            alt="SuperSaas Logo"
+            class="h-6 w-auto"
+          />
+          <p>
+            Made with ❤️ by
+            <a href="https://supersaas.dev" class="underline" target="_blank"
+              >SuperSaas</a
+            >. The Nuxt 3 Fullstack Starter kit.
+          </p>
+        </div>
+        <p>
+          Game source code on
+          <a
+            href="https://github.com/fayazara/Framework-Wars"
+            class="underline"
+            target="_blank"
+            >GitHub</a
+          >
+        </p>
+      </div>
     </div>
   </main>
 </template>
