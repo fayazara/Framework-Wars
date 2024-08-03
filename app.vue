@@ -1,6 +1,9 @@
 <template>
   <main class="bg-black h-screen w-screen relative overflow-hidden">
     <div class="absolute top-2 left-2 text-white">Score: {{ score }}</div>
+    <div class="absolute top-2 right-2 text-white">
+      Difficulty: {{ difficulty.toFixed(1) }}
+    </div>
     <FallingWords :words="activeWords" />
     <Projectile
       v-for="projectile in projectiles"
@@ -125,6 +128,7 @@ const increaseDifficulty = () => {
 
 let gameLoop;
 let wordGenerationInterval;
+let difficultyIncreaseInterval;
 
 onMounted(() => {
   window.addEventListener("keypress", handleKeyPress);
@@ -132,12 +136,21 @@ onMounted(() => {
     updateWords();
     updateProjectiles();
   }, 16);
-  wordGenerationInterval = setInterval(addWord, 2000 / difficulty.value);
+  wordGenerationInterval = setInterval(() => {
+    addWord();
+    clearInterval(wordGenerationInterval);
+    wordGenerationInterval = setInterval(addWord, 2000 / difficulty.value);
+  }, 2000 / difficulty.value);
+
+  difficultyIncreaseInterval = setInterval(() => {
+    increaseDifficulty();
+  }, 5000);
 });
 
 onUnmounted(() => {
   window.removeEventListener("keypress", handleKeyPress);
   clearInterval(gameLoop);
   clearInterval(wordGenerationInterval);
+  clearInterval(difficultyIncreaseInterval);
 });
 </script>
