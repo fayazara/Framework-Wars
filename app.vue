@@ -1,16 +1,23 @@
 <template>
   <main class="bg-black h-screen w-screen relative overflow-hidden">
-    <div class="absolute top-2 left-2 text-white">Score: {{ score }}</div>
-    <div class="absolute top-2 right-2 text-white">
-      Difficulty: {{ difficulty.toFixed(1) }}
+    <div v-if="!gameOver">
+      <div class="absolute top-2 left-2 text-white">Score: {{ score }}</div>
+      <div class="absolute top-2 right-2 text-white">
+        Difficulty: {{ difficulty.toFixed(1) }}
+      </div>
+      <FallingWords :words="activeWords" />
+      <Projectile
+        v-for="projectile in projectiles"
+        :key="projectile.id"
+        :projectile="projectile"
+      />
+      <Ship :rotation="shipRotation" />
     </div>
-    <FallingWords :words="activeWords" />
-    <Projectile
-      v-for="projectile in projectiles"
-      :key="projectile.id"
-      :projectile="projectile"
-    />
-    <Ship :rotation="shipRotation" />
+    <div v-else class="flex flex-col items-center justify-center h-full">
+      <h1 class="text-4xl text-white mb-4">Game Over</h1>
+      <p class="text-2xl text-white mb-4">Final Score: {{ score }}</p>
+      <UButton @click="restartGame" label="Restart Game" color="white" />
+    </div>
   </main>
 </template>
 
@@ -43,6 +50,7 @@ const projectiles = ref([]);
 const shipRotation = ref(0);
 const difficulty = ref(1);
 const maxActiveWords = ref(10);
+const gameOver = ref(false);
 
 const addWord = () => {
   if (activeWords.value.length < maxActiveWords.value) {
@@ -61,8 +69,7 @@ const updateWords = () => {
   activeWords.value.forEach((word) => {
     word.y += word.speed;
     if (word.y > window.innerHeight) {
-      activeWords.value = activeWords.value.filter((w) => w.id !== word.id);
-      score.value = Math.max(0, score.value - 5); // Penalty for missed words
+      endGame();
     }
   });
 };
@@ -87,6 +94,8 @@ const updateProjectiles = () => {
 };
 
 const handleKeyPress = (event) => {
+  if (gameOver.value) return;
+
   const letter = event.key.toLowerCase();
   const targetWord = activeWords.value.find((word) =>
     word.word.toLowerCase().startsWith(letter)
@@ -126,16 +135,38 @@ const increaseDifficulty = () => {
   maxActiveWords.value = Math.min(20, Math.floor(10 + difficulty.value * 2));
 };
 
+const endGame = () => {
+  gameOver.value = true;
+  clearAllIntervals();
+};
+
+const restartGame = () => {
+  score.value = 0;
+  activeWords.value = [];
+  projectiles.value = [];
+  shipRotation.value = 0;
+  difficulty.value = 1;
+  maxActiveWords.value = 10;
+  gameOver.value = false;
+  startGame();
+};
+
+const clearAllIntervals = () => {
+  clearInterval(gameLoop);
+  clearInterval(wordGenerationInterval);
+  clearInterval(difficultyIncreaseInterval);
+};
+
 let gameLoop;
 let wordGenerationInterval;
 let difficultyIncreaseInterval;
 
-onMounted(() => {
-  window.addEventListener("keypress", handleKeyPress);
+const startGame = () => {
   gameLoop = setInterval(() => {
     updateWords();
     updateProjectiles();
   }, 16);
+
   wordGenerationInterval = setInterval(() => {
     addWord();
     clearInterval(wordGenerationInterval);
@@ -144,13 +175,16 @@ onMounted(() => {
 
   difficultyIncreaseInterval = setInterval(() => {
     increaseDifficulty();
-  }, 5000);
+  }, 1000);
+};
+
+onMounted(() => {
+  window.addEventListener("keypress", handleKeyPress);
+  startGame();
 });
 
 onUnmounted(() => {
   window.removeEventListener("keypress", handleKeyPress);
-  clearInterval(gameLoop);
-  clearInterval(wordGenerationInterval);
-  clearInterval(difficultyIncreaseInterval);
+  clearAllIntervals();
 });
 </script>
